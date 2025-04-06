@@ -17,13 +17,22 @@ label dice_roll:
     $ d20 = renpy.random.randint(1, 20)
     return
 
+# Shake when hurt
+
+transform shake:
+    xoffset -20
+    linear 0.05 xoffset 20
+    linear 0.05 xoffset -10
+    linear 0.05 xoffset 10
+    linear 0.05 xoffset 0
+
 # HP and HP Bar
 
 init python:
-        player_hp = 10
-        player_max_hp = 10
-        enemy_hp = 10
-        enemy_max_hp = 10
+        player_hp = 40
+        player_max_hp = 40
+        enemy_hp = 40
+        enemy_max_hp = 40
         enemy_name = "人偶"
 
 screen hp_bars_1v1:
@@ -45,53 +54,60 @@ screen hp_bars_1v1:
 
 label start:
 
-    t "hi"
+    t "測試模板"
 
     $ enemy_name = t
-    $ enemy_max_hp = 69
+    $ enemy_max_hp = 40
 
     jump battle
 
 label battle:
 
-    
+    show enemy at right
+    show player at left
+    play music "audio/Glorious_Morning.mp3" volume 0.4 fadein 1.0 fadeout 1.0 loop
     $ player_hp = player_max_hp
     $ enemy_hp = enemy_max_hp
     $ anger = 0
 
-    "test"
     show screen hp_bars_1v1
     
     while player_hp > 0:
 
-        call dice_roll
+        call dice_roll from _call_dice_roll
 
         menu:
-            "Punch":
-                $ enemy_hp -= d4
-                "You punched [enemy_name] for [d4] damage!"
+            "重低音攻擊":
+                $ enemy_hp -= d6
+                play sound "audio/vine_boom.mp3" volume 1.1
+                show enemy at shake
+                "你對 [enemy_name] 造成了 [d6] 點傷害!"
 
                 if enemy_hp <= 0:
-                    "You defeated the [enemy_name]!"
+                    play music "audio/Victory.mp3" volume 0.5 fadein 1.0 fadeout 1.0 loop
+                    "你擊敗了 [enemy_name]!"
                     jump options
 
-            "Mock":
-                "You tell the [enemy_name] to kill himself..."
-                "The [enemy_name] is enraged!"
-                $ anger += 1
+            "嘲諷":
+                $ anger += d4
+                "你告訴 [enemy_name] 去死一死..."
+                "[enemy_name] 被激怒了!"
+                "[enemy_name] 傷害加[d4]點!"
 
-        $ player_hp -= (2+anger) 
-        "The [enemy_name] punched you for [2+anger] damage!"
+        $ player_hp -= (d4+anger) 
+        show player at shake
+        play sound "audio/metal_pipe.mp3" volume 0.8
+        "[enemy_name] 對你造成了 [d4+anger] 傷害!"
 
-
-    "You are defeated!"
+    play music "audio/Sisyphus.mp3" volume 0.5 fadein 1.0 fadeout 1.0 loop
+    "你被擊敗了..."
 
     hide screen hp_bars_1v1
     menu options:
-        "Try Again":
+        "再玩一次":
             jump battle
 
-        "Quit":
+        "結束":
             return
 
     return
